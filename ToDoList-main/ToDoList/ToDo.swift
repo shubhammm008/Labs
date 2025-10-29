@@ -13,7 +13,6 @@ struct ToDo: Equatable, Codable {
     var isComplete: Bool // Flag indicating completion status
     var dueDate: Date // Due date of the ToDo
     var notes: String? // Optional notes for the ToDo
-    
     // Initializer for creating a ToDo instance
     init(title: String, isComplete: Bool, dueDate: Date, notes: String? = nil) {
         self.id = UUID() // Generate a new UUID for the ToDo
@@ -57,4 +56,46 @@ struct ToDo: Equatable, Codable {
     }
 }
 
-
+class ToDoDataModel {
+    static let shared = ToDoDataModel()
+    
+    private var toDos: [ToDo] = []
+    
+    private init() {
+        if let savedToDos = ToDo.loadToDos() {
+            toDos = savedToDos
+        } else {
+            toDos = ToDo.loadSampleToDos()
+        }
+    }
+    
+    func getAllToDos() -> [ToDo] {
+        return toDos
+    }
+    
+    func add(_ toDo: ToDo) {
+        toDos.append(toDo)
+        saveChanges()
+    }
+    
+    func update(_ toDo: ToDo) {
+        if let index = toDos.firstIndex(of: toDo) {
+            toDos[index] = toDo
+            saveChanges()
+        }
+    }
+    
+    func delete(at index: Int) {
+        toDos.remove(at: index)
+        saveChanges()
+    }
+    
+    func toggleComplete(at index: Int) {
+        toDos[index].isComplete.toggle()
+        saveChanges()
+    }
+    
+    private func saveChanges() {
+        ToDo.saveToDos(toDos)
+    }
+}

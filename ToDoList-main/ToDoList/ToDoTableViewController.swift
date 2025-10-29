@@ -9,17 +9,14 @@ import UIKit
 
 class ToDoTableViewController: UITableViewController, ToDoCellDelegate {
     
-    var toDos = [ToDo] () // Array to store ToDo items
+    var dataModel = ToDoDataModel.shared
+    var toDos:[ToDo]=[]// Array to store ToDo items
 
     // Load saved ToDos or use sample ToDos if no saved data
     override func viewDidLoad() {
         super.viewDidLoad()
-    
-        if let savedToDos = ToDo.loadToDos() {
-            toDos = savedToDos
-        } else {
-            toDos = ToDo.loadSampleToDos()
-        }
+        
+        toDos=dataModel.getAllToDos()
         
         // Add an Edit button to the navigation bar
         navigationItem.leftBarButtonItem = editButtonItem
@@ -52,9 +49,9 @@ class ToDoTableViewController: UITableViewController, ToDoCellDelegate {
     // Handle row deletion
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            toDos.remove(at: indexPath.row)
+            dataModel.delete(at: indexPath.row)
+            toDos=dataModel.getAllToDos()
             tableView.deleteRows(at: [indexPath], with: .automatic)
-            ToDo.saveToDos(toDos) // Save updated ToDos
         }
     }
 
@@ -67,26 +64,24 @@ class ToDoTableViewController: UITableViewController, ToDoCellDelegate {
         if let toDo = sourceViewController.toDo {
             if let indexOfExistingToDo = toDos.firstIndex(of: toDo) {
                 // Update existing ToDo if it exists
-                toDos[indexOfExistingToDo] = toDo
+                dataModel.update(toDo)
                 tableView.reloadRows(at: [IndexPath(row: indexOfExistingToDo, section: 0)], with: .automatic)
             } else {
                 // Add new ToDo if it doesn't exist
                 let newIndexPath = IndexPath(row: toDos.count, section: 0)
-                toDos.append(toDo)
+                dataModel.add(toDo)
                 tableView.insertRows(at: [newIndexPath], with: .automatic)
             }
         }
-        ToDo.saveToDos(toDos) // Save updated ToDos
     }
     
     // Handle the checkmark button tap to mark a ToDo as complete or incomplete
     func checkmarkTapped(sender: ToDoCell) {
         if let indexPath = tableView.indexPath(for: sender) {
             var toDo = toDos[indexPath.row]
-            toDo.isComplete.toggle()
-            toDos[indexPath.row] = toDo
-            tableView.reloadRows(at: [indexPath], with: .automatic)
-            ToDo.saveToDos(toDos) // Save updated ToDos
+            dataModel.toggleComplete(at: indexPath.row)
+            toDos=dataModel.getAllToDos()
+            tableView.reloadRows(at: [indexPath] , with: .automatic)
         }
     }
     
